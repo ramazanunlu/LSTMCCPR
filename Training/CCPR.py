@@ -43,7 +43,7 @@ Uptrend_SVM=pd.DataFrame()
 Uptrend_Weighted=pd.DataFrame()
 Uptrend_LSTM=pd.DataFrame()
 
-w=np.arange(10,20,10)
+w=np.arange(10,100,10)
 alpha=np.arange(0.005,0.2,0.02)
 abtype=5
 normalsize=950
@@ -91,12 +91,14 @@ for j in w:
 
         model = Sequential()
         #model.add(Bidirectional(LSTM(16,activation='tanh',batch_input_shape=(batch_size,15,1),return_sequences=False,kernel_initializer='RandomNormal',kernel_regularizer=regularizers.l2(0.01), recurrent_regularizer=regularizers.l1(0.01), bias_regularizer=regularizers.l1(0.01),stateful=True)))
-        model.add(Bidirectional(LSTM(32,activation='tanh',input_shape=(X_train.shape[1:]),return_sequences=False)))
-        #model.add(Bidirectional(LSTM(2,activation='tanh',input_shape=(X_train.shape[1:]),return_sequences=False)))
-        #model.add(Dense(4,activation='relu'))
+        model.add(Bidirectional(LSTM(16,activation='tanh',input_shape=(X_train.shape[1:]),return_sequences=True)))
+        model.add(Dropout(0.2))
+        model.add(Bidirectional(LSTM(16,activation='tanh',input_shape=(X_train.shape[1:]),return_sequences=True)))
+        model.add(Dropout(0.2))
+        model.add(Bidirectional(LSTM(16,activation='tanh',input_shape=(X_train.shape[1:]),return_sequences=False)))
         model.add(Dense(y_train.shape[1], activation='softmax'))
         opt=optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=1e-3, amsgrad=False)
-        model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+        model.compile(loss=loss.csmse, optimizer=opt, metrics=['accuracy'])
         monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=10, verbose=0, mode='auto')
         checkpointer = ModelCheckpoint(filepath="best_weights.hdf5", verbose=0, save_best_only=True)
         #print(model.summary())
